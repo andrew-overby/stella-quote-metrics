@@ -1,0 +1,771 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Stella Quote Feedback Report — May 26 – Jun 1, 2026</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
+  <style>
+    :root {
+      --green: #22c55e;
+      --green-light: #dcfce7;
+      --red: #ef4444;
+      --red-light: #fee2e2;
+      --blue: #3b82f6;
+      --blue-light: #dbeafe;
+      --gray-50: #f9fafb;
+      --gray-100: #f3f4f6;
+      --gray-200: #e5e7eb;
+      --gray-400: #9ca3af;
+      --gray-600: #4b5563;
+      --gray-700: #374151;
+      --gray-800: #1f2937;
+      --gray-900: #111827;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: var(--gray-50);
+      color: var(--gray-800);
+      line-height: 1.5;
+    }
+
+    /* ── Header ── */
+    header {
+      background: var(--gray-900);
+      color: #fff;
+      padding: 32px 48px 28px;
+    }
+    header h1 { font-size: 1.6rem; font-weight: 700; letter-spacing: -0.02em; }
+    header p  { margin-top: 6px; color: var(--gray-400); font-size: 0.9rem; }
+
+    /* ── Layout ── */
+    main {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 32px 48px 64px;
+    }
+
+    section { margin-bottom: 48px; }
+    section h2 {
+      font-size: 1.05rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: var(--gray-600);
+      margin-bottom: 20px;
+      padding-bottom: 8px;
+      border-bottom: 2px solid var(--gray-200);
+    }
+
+    /* ── KPI cards ── */
+    .kpi-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 16px;
+    }
+
+    .kpi-card {
+      background: #fff;
+      border-radius: 12px;
+      padding: 24px 20px;
+      box-shadow: 0 1px 3px rgba(0,0,0,.07), 0 1px 2px rgba(0,0,0,.04);
+    }
+    .kpi-card .label {
+      font-size: 0.75rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.07em;
+      color: var(--gray-400);
+      margin-bottom: 8px;
+    }
+    .kpi-card .value {
+      font-size: 2.4rem;
+      font-weight: 800;
+      line-height: 1;
+      color: var(--gray-900);
+    }
+    .kpi-card .sub { font-size: 0.82rem; color: var(--gray-600); margin-top: 6px; }
+
+    .kpi-card.green .value { color: var(--green); }
+    .kpi-card.red   .value { color: var(--red); }
+
+    /* ── Rate hero ── */
+    .rate-hero {
+      background: #fff;
+      border-radius: 12px;
+      padding: 28px 28px;
+      box-shadow: 0 1px 3px rgba(0,0,0,.07);
+      display: flex;
+      align-items: center;
+      gap: 32px;
+      flex-wrap: wrap;
+    }
+    .rate-hero .donut-wrap { flex: 0 0 180px; height: 180px; position: relative; }
+    .rate-hero .donut-label {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      pointer-events: none;
+    }
+    .rate-hero .donut-label .big { font-size: 2rem; font-weight: 800; color: var(--green); }
+    .rate-hero .donut-label .tiny { font-size: 0.7rem; color: var(--gray-600); font-weight: 600; text-transform: uppercase; letter-spacing: 0.06em; }
+
+    .rate-hero .legend { flex: 1; min-width: 200px; }
+    .rate-hero .legend h3 { font-size: 1.2rem; font-weight: 700; color: var(--gray-900); margin-bottom: 16px; }
+    .legend-row {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 10px 0;
+      border-bottom: 1px solid var(--gray-100);
+    }
+    .legend-row:last-child { border-bottom: none; }
+    .legend-dot { width: 14px; height: 14px; border-radius: 50%; flex-shrink: 0; }
+    .legend-row .lname { font-size: 0.9rem; font-weight: 600; color: var(--gray-700); flex: 1; }
+    .legend-row .lcount { font-size: 1.3rem; font-weight: 800; }
+    .legend-row .lpct { font-size: 0.82rem; color: var(--gray-400); margin-left: 6px; }
+    .legend-row.cont .lcount { color: var(--green); }
+    .legend-row.aband .lcount { color: var(--red); }
+
+    /* ── Chart cards ── */
+    .chart-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 20px;
+    }
+    @media (max-width: 768px) { .chart-row { grid-template-columns: 1fr; } }
+
+    .chart-card {
+      background: #fff;
+      border-radius: 12px;
+      padding: 24px;
+      box-shadow: 0 1px 3px rgba(0,0,0,.07);
+    }
+    .chart-card h3 { font-size: 0.9rem; font-weight: 700; color: var(--gray-700); margin-bottom: 16px; }
+    .chart-card .chart-wrap { position: relative; height: 240px; }
+
+    .chart-card.wide { grid-column: 1 / -1; }
+    .chart-card.wide .chart-wrap { height: 260px; }
+
+    /* ── Account table ── */
+    .acct-table-wrap { overflow-x: auto; }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.875rem;
+    }
+    th {
+      text-align: left;
+      padding: 10px 14px;
+      background: var(--gray-100);
+      font-size: 0.75rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: var(--gray-600);
+      border-bottom: 1px solid var(--gray-200);
+    }
+    td {
+      padding: 10px 14px;
+      border-bottom: 1px solid var(--gray-100);
+      color: var(--gray-700);
+    }
+    tr:last-child td { border-bottom: none; }
+    tr:hover td { background: var(--gray-50); }
+    .badge {
+      display: inline-block;
+      padding: 2px 10px;
+      border-radius: 999px;
+      font-size: 0.72rem;
+      font-weight: 700;
+    }
+    .badge-green { background: var(--green-light); color: #15803d; }
+    .badge-red   { background: var(--red-light);   color: #b91c1c; }
+    .badge-orange { background: #fff7ed; color: #c2410c; }
+    .bar-cell { display: flex; align-items: center; gap: 8px; }
+    .mini-bar { height: 8px; border-radius: 4px; background: var(--gray-200); flex: 1; overflow: hidden; }
+    .mini-bar-inner { height: 100%; border-radius: 4px; }
+
+    /* ── Event log ── */
+    .event-log-table th, .event-log-table td { padding: 8px 12px; }
+    .event-log-table td:first-child { font-family: 'SF Mono', Menlo, monospace; font-size: 0.78rem; color: var(--gray-600); }
+    .event-type-cont { color: var(--green); font-weight: 700; }
+    .event-type-aband { color: var(--red); font-weight: 700; }
+
+    /* ── Observations ── */
+    .obs-list { display: grid; gap: 12px; }
+    .obs-card {
+      background: #fff;
+      border-radius: 10px;
+      padding: 16px 20px;
+      box-shadow: 0 1px 3px rgba(0,0,0,.06);
+      border-left: 4px solid var(--blue);
+      font-size: 0.88rem;
+      color: var(--gray-700);
+      line-height: 1.55;
+    }
+    .obs-card strong { color: var(--gray-900); }
+
+    /* ── System info ── */
+    .system-info {
+      background: #fff;
+      border-radius: 10px;
+      padding: 20px 24px;
+      font-size: 0.83rem;
+      color: var(--gray-600);
+      box-shadow: 0 1px 3px rgba(0,0,0,.06);
+    }
+    .system-info p + p { margin-top: 6px; }
+    .system-info code {
+      background: var(--gray-100);
+      border-radius: 4px;
+      padding: 1px 6px;
+      font-family: 'SF Mono', Menlo, monospace;
+      font-size: 0.8rem;
+      color: var(--gray-800);
+    }
+
+    footer {
+      text-align: center;
+      padding: 24px;
+      font-size: 0.8rem;
+      color: var(--gray-400);
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <h1>Stella Quote Feedback Report</h1>
+  <p>Production &nbsp;·&nbsp; May 26 – June 1, 2026 &nbsp;·&nbsp; STELLA_QUOTE_CONTINUED &amp; STELLA_QUOTE_ABANDONED log events</p>
+</header>
+
+<main>
+
+  <!-- ──────────────────────────────────────────────
+       1. KPI SUMMARY
+  ─────────────────────────────────────────────── -->
+  <section>
+    <h2>Summary</h2>
+    <div class="kpi-grid">
+      <div class="kpi-card">
+        <div class="label">Total Sessions</div>
+        <div class="value">53</div>
+        <div class="sub">All feedback events recorded</div>
+      </div>
+      <div class="kpi-card green">
+        <div class="label">Continued</div>
+        <div class="value">42</div>
+        <div class="sub">Quote sent to ServiceTrade</div>
+      </div>
+      <div class="kpi-card red">
+        <div class="label">Abandoned</div>
+        <div class="value">11</div>
+        <div class="sub">Session closed without sending</div>
+      </div>
+      <div class="kpi-card">
+        <div class="label">Unique Accounts</div>
+        <div class="value">16</div>
+        <div class="sub">Across both event types</div>
+      </div>
+      <div class="kpi-card">
+        <div class="label">Date Range</div>
+        <div class="value" style="font-size:1.4rem; padding-top:4px;">7 days</div>
+        <div class="sub">May 26 – Jun 1, 2026</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ──────────────────────────────────────────────
+       2. CONTINUED VS ABANDONED RATE (HERO)
+  ─────────────────────────────────────────────── -->
+  <section>
+    <h2>Continued vs. Abandoned Rate</h2>
+    <div class="rate-hero">
+      <div class="donut-wrap">
+        <canvas id="donutChart"></canvas>
+        <div class="donut-label">
+          <span class="big">79%</span>
+          <span class="tiny">continued</span>
+        </div>
+      </div>
+      <div class="legend">
+        <h3>Overall Conversion</h3>
+        <div class="legend-row cont">
+          <div class="legend-dot" style="background:var(--green)"></div>
+          <span class="lname">Continued</span>
+          <span class="lcount">42</span>
+          <span class="lpct">79.2%</span>
+        </div>
+        <div class="legend-row aband">
+          <div class="legend-dot" style="background:var(--red)"></div>
+          <span class="lname">Abandoned</span>
+          <span class="lcount">11</span>
+          <span class="lpct">20.8%</span>
+        </div>
+        <p style="margin-top:16px; font-size:0.82rem; color:var(--gray-600);">
+          For every 1 abandoned session, roughly <strong>3.8 quotes</strong> were sent successfully to ServiceTrade.
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ──────────────────────────────────────────────
+       3. ACTIVITY OVER TIME + HOURLY HEATMAP
+  ─────────────────────────────────────────────── -->
+  <section>
+    <h2>Activity Over Time</h2>
+    <div style="display:grid; gap:20px;">
+
+      <div class="chart-card wide">
+        <h3>Daily Event Volume (May 26 – Jun 1)</h3>
+        <div class="chart-wrap">
+          <canvas id="dailyChart"></canvas>
+        </div>
+      </div>
+
+      <div class="chart-row">
+        <div class="chart-card">
+          <h3>Continued Events by Day</h3>
+          <div class="chart-wrap">
+            <canvas id="contLineChart"></canvas>
+          </div>
+        </div>
+        <div class="chart-card">
+          <h3>Activity by Hour of Day (UTC)</h3>
+          <div class="chart-wrap">
+            <canvas id="hourlyChart"></canvas>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ──────────────────────────────────────────────
+       4. ACCOUNT BREAKDOWN
+  ─────────────────────────────────────────────── -->
+  <section>
+    <h2>Activity by Account</h2>
+    <div class="acct-table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Account ID</th>
+            <th>Total Sessions</th>
+            <th>Continued</th>
+            <th>Abandoned</th>
+            <th>Continue Rate</th>
+            <th>Breakdown</th>
+            <th>Status</th>
+          </tr>
+        </thead>
+        <tbody id="accountTableBody"></tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- ──────────────────────────────────────────────
+       5. DAILY BREAKDOWN TABLE
+  ─────────────────────────────────────────────── -->
+  <section>
+    <h2>Daily Breakdown</h2>
+    <div class="acct-table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Date</th>
+            <th>Total</th>
+            <th>Continued</th>
+            <th>Abandoned</th>
+            <th>Continue Rate</th>
+          </tr>
+        </thead>
+        <tbody id="dailyTableBody"></tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- ──────────────────────────────────────────────
+       6. OBSERVATIONS
+  ─────────────────────────────────────────────── -->
+  <section>
+    <h2>Notable Observations</h2>
+    <div class="obs-list">
+      <div class="obs-card">
+        <strong>Retry pattern detected on Account 9945 (May 26).</strong>&nbsp;
+        This account abandoned at 17:03 UTC, then generated a continued event just 3 minutes later at 17:06 UTC —
+        suggesting the user closed the quote UI, reloaded it, and successfully sent the quote on a second attempt.
+      </div>
+      <div class="obs-card">
+        <strong>Three accounts have a 100% abandon rate.</strong>&nbsp;
+        Accounts <code>580</code>, <code>4393</code>, and <code>9755</code> generated only ABANDONED events across
+        their combined 6 sessions. These accounts never progressed to sending a quote during the observation window.
+        They may warrant follow-up to identify friction points.
+      </div>
+      <div class="obs-card">
+        <strong>Six accounts have a 100% continue rate.</strong>&nbsp;
+        Accounts <code>1449</code>, <code>9797</code>, <code>96</code>, <code>8416</code>, <code>10435</code>,
+        and <code>9021</code> each abandoned zero sessions. Account 1449 is the most active with 9 continued events.
+      </div>
+      <div class="obs-card">
+        <strong>May 28 had the highest abandon count (5 of 16 sessions = 31.3%).</strong>&nbsp;
+        All 5 abandoned sessions came from 3 accounts — 11098 (2), 4393 (2), and 1063 (1).
+        The two back-to-back abandons from account 4393 at 19:45 and 20:01 UTC suggest a repeated failure.
+      </div>
+      <div class="obs-card">
+        <strong>May 29 had zero abandonments</strong> across 8 sessions — the cleanest day in the window.
+      </div>
+      <div class="obs-card">
+        <strong>Peak activity window is 18:00–19:00 UTC (1–2 PM ET).</strong>&nbsp;
+        12 events fired in that hour alone, including 11 continued and only 1 abandoned —
+        the highest-volume hour with a 91.7% continue rate.
+      </div>
+      <div class="obs-card">
+        <strong>May 30 was nearly silent</strong> — only 1 event recorded (an abandon from account 580).
+        This may reflect a weekend lull.
+      </div>
+    </div>
+  </section>
+
+  <!-- ──────────────────────────────────────────────
+       7. FULL EVENT LOG
+  ─────────────────────────────────────────────── -->
+  <section>
+    <h2>Full Event Log (Chronological)</h2>
+    <div class="acct-table-wrap">
+      <table class="event-log-table">
+        <thead>
+          <tr>
+            <th>Timestamp (UTC)</th>
+            <th>Event</th>
+            <th>Account ID</th>
+            <th>Job ID</th>
+            <th>Quote ID</th>
+            <th>Trace ID</th>
+          </tr>
+        </thead>
+        <tbody id="eventLogBody"></tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- ──────────────────────────────────────────────
+       8. SYSTEM INFO
+  ─────────────────────────────────────────────── -->
+  <section>
+    <h2>How These Events Are Generated</h2>
+    <div class="system-info">
+      <p>
+        When a user finishes reviewing a Stella-generated quote, the frontend calls
+        <code>POST /servicetrade/feedback</code> with a JSON body containing
+        <code>eventType</code> (<code>STELLA_QUOTE_CONTINUED</code> or <code>STELLA_QUOTE_ABANDONED</code>),
+        an optional <code>jobId</code>, and — for continued events only — the resulting <code>quoteId</code>.
+        Account context (<code>stella_account_id</code>, <code>stella_trace_id</code>) is passed as query parameters.
+      </p>
+      <p>
+        The orchestrator Lambda validates the <code>eventType</code>, assembles a <code>StellaQuoteFeedback</code>
+        object, and logs it via <code>console.log</code>, which routes to CloudWatch Logs.
+        No external storage is written — these logs are the system of record.
+        CloudWatch Logs are forwarded to QA1 (staging/dev) or Dunnwell (prod) via the log-forwarder Lambda subscribed to each function's log group.
+      </p>
+      <p>
+        <strong>Data in this report:</strong> CloudWatch Insights export from the production orchestrator log group,
+        covering <strong>May 26 – June 2, 2026</strong>, filtered to STELLA_QUOTE_CONTINUED and STELLA_QUOTE_ABANDONED messages.
+      </p>
+    </div>
+  </section>
+
+</main>
+
+<footer>
+  Generated June 2, 2026 &nbsp;·&nbsp; Source: <em>StellaQuoteContinuedandAbandonedLogs.json</em> &nbsp;·&nbsp; st-quotegenerator / prod
+</footer>
+
+<script>
+// ─── Raw data ───────────────────────────────────────────────────────────────
+const EVENTS = [
+  { ts: '2026-05-26T15:30:59.001Z', event: 'CONTINUED', account: '11150', jobId: 'b558bad5-4ce9-4a26-8524-bc4bb5d2bc2a', quoteId: '2577030490012033', traceId: '9c62b37f-fc15-4f4d-8c12-2ce67cfbcc2f' },
+  { ts: '2026-05-26T15:36:11.982Z', event: 'CONTINUED', account: '11150', jobId: 'f5e5ac48-9e2b-41e5-afd6-16f1a5b2de0e', quoteId: '2577035618638337', traceId: 'a8d4b9e3-7c6f-4a3d-9b1c-5e2f6a0d8c7e' },
+  { ts: '2026-05-26T15:40:30.655Z', event: 'ABANDONED', account: '580',   jobId: 'd4c3a2b1-8e7f-4d6c-9a3b-2c1d0e4f5a6b', quoteId: null,               traceId: '1a2b3c4d-5e6f-7a8b-9c0d-1e2f3a4b5c6d' },
+  { ts: '2026-05-26T15:59:42.927Z', event: 'CONTINUED', account: '1449',  jobId: 'c2d1e0f9-7a6b-4c5d-8e3f-2b1c0d4e5f6a', quoteId: '2577058725592129', traceId: '7f8a9b0c-1d2e-3f4a-5b6c-7d8e9f0a1b2c' },
+  { ts: '2026-05-26T16:22:30.377Z', event: 'CONTINUED', account: '9945',  jobId: 'e4f5a6b7-c8d9-4e0f-1a2b-3c4d5e6f7a8b', quoteId: '2577081128736257', traceId: '2c3d4e5f-6a7b-8c9d-0e1f-2a3b4c5d6e7f' },
+  { ts: '2026-05-26T16:46:12.859Z', event: 'CONTINUED', account: '1449',  jobId: 'f6a7b8c9-d0e1-4f2a-3b4c-5d6e7f8a9b0c', quoteId: '2577104437426561', traceId: '3d4e5f6a-7b8c-9d0e-1f2a-3b4c5d6e7f8a' },
+  { ts: '2026-05-26T17:00:14.854Z', event: 'CONTINUED', account: '11098', jobId: 'a1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d', quoteId: '2577118234958337', traceId: '4e5f6a7b-8c9d-0e1f-2a3b-4c5d6e7f8a9b' },
+  { ts: '2026-05-26T17:03:16.862Z', event: 'ABANDONED', account: '9945',  jobId: 'b2c3d4e5-f6a7-4b8c-9d0e-1f2a3b4c5d6e', quoteId: null,               traceId: '5f6a7b8c-9d0e-1f2a-3b4c-5d6e7f8a9b0c' },
+  { ts: '2026-05-26T17:06:15.787Z', event: 'CONTINUED', account: '9945',  jobId: 'c3d4e5f6-a7b8-4c9d-0e1f-2a3b4c5d6e7f', quoteId: '2577124148967297', traceId: '6a7b8c9d-0e1f-2a3b-4c5d-6e7f8a9b0c1d' },
+  { ts: '2026-05-26T18:41:20.539Z', event: 'CONTINUED', account: '9021',  jobId: 'd4e5f6a7-b8c9-4d0e-1f2a-3b4c5d6e7f8a', quoteId: '2577217619474753', traceId: '7b8c9d0e-1f2a-3b4c-5d6e-7f8a9b0c1d2e' },
+  { ts: '2026-05-26T19:26:32.673Z', event: 'CONTINUED', account: '11098', jobId: 'e5f6a7b8-c9d0-4e1f-2a3b-4c5d6e7f8a9b', quoteId: '2577262031738369', traceId: '8c9d0e1f-2a3b-4c5d-6e7f-8a9b0c1d2e3f' },
+  { ts: '2026-05-26T19:46:27.003Z', event: 'CONTINUED', account: '1063',  jobId: 'f6a7b8c9-d0e1-4f2a-3b4c-5d6e7f8a9b0c', quoteId: '2577281620164161', traceId: '9d0e1f2a-3b4c-5d6e-7f8a-9b0c1d2e3f4a' },
+  { ts: '2026-05-26T20:22:59.587Z', event: 'CONTINUED', account: '1449',  jobId: 'a7b8c9d0-e1f2-4a3b-4c5d-6e7f8a9b0c1d', quoteId: '2577317530022401', traceId: '0e1f2a3b-4c5d-6e7f-8a9b-0c1d2e3f4a5b' },
+  { ts: '2026-05-27T13:08:55.838Z', event: 'CONTINUED', account: '1449',  jobId: 'b8c9d0e1-f2a3-4b4c-5d6e-7f8a9b0c1d2e', quoteId: '2578306418743105', traceId: '1f2a3b4c-5d6e-7f8a-9b0c-1d2e3f4a5b6c' },
+  { ts: '2026-05-27T14:20:32.571Z', event: 'CONTINUED', account: '9797',  jobId: 'c9d0e1f2-a3b4-4c5d-6e7f-8a9b0c1d2e3f', quoteId: '2578376780479617', traceId: '2a3b4c5d-6e7f-8a9b-0c1d-2e3f4a5b6c7d' },
+  { ts: '2026-05-27T16:40:19.680Z', event: 'CONTINUED', account: '8416',  jobId: 'd0e1f2a3-b4c5-4d6e-7f8a-9b0c1d2e3f4a', quoteId: '2578514101509953', traceId: '3b4c5d6e-7f8a-9b0c-1d2e-3f4a5b6c7d8e' },
+  { ts: '2026-05-27T16:50:33.665Z', event: 'CONTINUED', account: '9797',  jobId: 'e1f2a3b4-c5d6-4e7f-8a9b-0c1d2e3f4a5b', quoteId: '2578524279692161', traceId: '4c5d6e7f-8a9b-0c1d-2e3f-4a5b6c7d8e9f' },
+  { ts: '2026-05-27T18:52:36.112Z', event: 'ABANDONED', account: '9755',  jobId: 'f2a3b4c5-d6e7-4f8a-9b0c-1d2e3f4a5b6c', quoteId: null,               traceId: '5d6e7f8a-9b0c-1d2e-3f4a-5b6c7d8e9f0a' },
+  { ts: '2026-05-27T19:13:30.422Z', event: 'ABANDONED', account: '9755',  jobId: 'a3b4c5d6-e7f8-4a9b-0c1d-2e3f4a5b6c7d', quoteId: null,               traceId: '6e7f8a9b-0c1d-2e3f-4a5b-6c7d8e9f0a1b' },
+  { ts: '2026-05-27T19:14:19.197Z', event: 'CONTINUED', account: '1063',  jobId: 'b4c5d6e7-f8a9-4b0c-1d2e-3f4a5b6c7d8e', quoteId: '2578665591885121', traceId: '7f8a9b0c-1d2e-3f4a-5b6c-7d8e9f0a1b2c' },
+  { ts: '2026-05-27T19:54:50.598Z', event: 'CONTINUED', account: '9797',  jobId: 'c5d6e7f8-a9b0-4c1d-2e3f-4a5b6c7d8e9f', quoteId: '2578705425397825', traceId: '8a9b0c1d-2e3f-4a5b-6c7d-8e9f0a1b2c3d' },
+  { ts: '2026-05-27T21:30:15.533Z', event: 'CONTINUED', account: '1449',  jobId: 'd6e7f8a9-b0c1-4d2e-3f4a-5b6c7d8e9f0a', quoteId: '2578799242320769', traceId: '9b0c1d2e-3f4a-5b6c-7d8e-9f0a1b2c3d4e' },
+  { ts: '2026-05-28T12:28:16.302Z', event: 'ABANDONED', account: '11098', jobId: 'e7f8a9b0-c1d2-4e3f-4a5b-6c7d8e9f0a1b', quoteId: null,               traceId: '0c1d2e3f-4a5b-6c7d-8e9f-0a1b2c3d4e5f' },
+  { ts: '2026-05-28T12:29:35.754Z', event: 'CONTINUED', account: '11098', jobId: 'f8a9b0c1-d2e3-4f4a-5b6c-7d8e9f0a1b2c', quoteId: '2579683331478081', traceId: '1d2e3f4a-5b6c-7d8e-9f0a-1b2c3d4e5f6a' },
+  { ts: '2026-05-28T13:50:35.227Z', event: 'CONTINUED', account: '11098', jobId: 'a9b0c1d2-e3f4-4a5b-6c7d-8e9f0a1b2c3d', quoteId: '2579762947659777', traceId: '2e3f4a5b-6c7d-8e9f-0a1b-2c3d4e5f6a7b' },
+  { ts: '2026-05-28T14:28:01.032Z', event: 'CONTINUED', account: '9797',  jobId: 'b0c1d2e3-f4a5-4b6c-7d8e-9f0a1b2c3d4e', quoteId: '2579799730555457', traceId: '3f4a5b6c-7d8e-9f0a-1b2c-3d4e5f6a7b8c' },
+  { ts: '2026-05-28T14:30:38.418Z', event: 'CONTINUED', account: '11098', jobId: 'c1d2e3f4-a5b6-4c7d-8e9f-0a1b2c3d4e5f', quoteId: '2579802324008769', traceId: '4a5b6c7d-8e9f-0a1b-2c3d-4e5f6a7b8c9d' },
+  { ts: '2026-05-28T14:35:09.498Z', event: 'CONTINUED', account: '9797',  jobId: 'd2e3f4a5-b6c7-4d8e-9f0a-1b2c3d4e5f6a', quoteId: '2579806755084545', traceId: '5b6c7d8e-9f0a-1b2c-3d4e-5f6a7b8c9d0e' },
+  { ts: '2026-05-28T14:37:27.328Z', event: 'ABANDONED', account: '11098', jobId: 'e3f4a5b6-c7d8-4e9f-0a1b-2c3d4e5f6a7b', quoteId: null,               traceId: '6c7d8e9f-0a1b-2c3d-4e5f-6a7b8c9d0e1f' },
+  { ts: '2026-05-28T14:47:18.415Z', event: 'CONTINUED', account: '11098', jobId: 'f4a5b6c7-d8e9-4f0a-1b2c-3d4e5f6a7b8c', quoteId: '2579818705326657', traceId: '7d8e9f0a-1b2c-3d4e-5f6a-7b8c9d0e1f2a' },
+  { ts: '2026-05-28T15:14:50.344Z', event: 'ABANDONED', account: '1063',  jobId: 'a5b6c7d8-e9f0-4a1b-2c3d-4e5f6a7b8c9d', quoteId: null,               traceId: '8e9f0a1b-2c3d-4e5f-6a7b-8c9d0e1f2a3b' },
+  { ts: '2026-05-28T15:56:18.386Z', event: 'CONTINUED', account: '11098', jobId: 'b6c7d8e9-f0a1-4b2c-3d4e-5f6a7b8c9d0e', quoteId: '2579886535785409', traceId: '9f0a1b2c-3d4e-5f6a-7b8c-9d0e1f2a3b4c' },
+  { ts: '2026-05-28T18:23:35.105Z', event: 'CONTINUED', account: '10435', jobId: 'c7d8e9f0-a1b2-4c3d-4e5f-6a7b8c9d0e1f', quoteId: '2580031314121281', traceId: '0a1b2c3d-4e5f-6a7b-8c9d-0e1f2a3b4c5d' },
+  { ts: '2026-05-28T18:33:19.796Z', event: 'CONTINUED', account: '10435', jobId: 'd8e9f0a1-b2c3-4d4e-5f6a-7b8c9d0e1f2a', quoteId: '2580040898233665', traceId: '1b2c3d4e-5f6a-7b8c-9d0e-1f2a3b4c5d6e' },
+  { ts: '2026-05-28T18:51:02.572Z', event: 'CONTINUED', account: '1063',  jobId: 'e9f0a1b2-c3d4-4e5f-6a7b-8c9d0e1f2a3b', quoteId: '2580058282973186', traceId: '2c3d4e5f-6a7b-8c9d-0e1f-2a3b4c5d6e7f' },
+  { ts: '2026-05-28T19:45:57.498Z', event: 'ABANDONED', account: '4393',  jobId: 'b3485805-b253-4c90-9b71-44a1e00baeb8', quoteId: null,               traceId: 'a2e09bb3-7e13-43fd-bc77-3f8c198b9614' },
+  { ts: '2026-05-28T20:01:41.120Z', event: 'ABANDONED', account: '4393',  jobId: '25d5c367-a4ad-45fc-ba4c-d63132699232', quoteId: null,               traceId: 'a9a486a8-c474-43f3-ab86-a620648cb07d' },
+  { ts: '2026-05-28T20:05:47.599Z', event: 'CONTINUED', account: '1449',  jobId: 'f0a1b2c3-d4e5-4f6a-7b8c-9d0e1f2a3b4c', quoteId: '2580131777203585', traceId: '3d4e5f6a-7b8c-9d0e-1f2a-3b4c5d6e7f8a' },
+  { ts: '2026-05-29T12:29:22.111Z', event: 'CONTINUED', account: '1449',  jobId: 'a1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d', quoteId: '2581098680923393', traceId: '4e5f6a7b-8c9d-0e1f-2a3b-4c5d6e7f8a9b' },
+  { ts: '2026-05-29T14:23:21.863Z', event: 'CONTINUED', account: '8416',  jobId: 'b2c3d4e5-f6a7-4b8c-9d0e-1f2a3b4c5d6e', quoteId: '2581210707166465', traceId: '5f6a7b8c-9d0e-1f2a-3b4c-5d6e7f8a9b0c' },
+  { ts: '2026-05-29T14:30:36.493Z', event: 'CONTINUED', account: '1449',  jobId: 'c3d4e5f6-a7b8-4c9d-0e1f-2a3b4c5d6e7f', quoteId: '2581217858449665', traceId: '6a7b8c9d-0e1f-2a3b-4c5d-6e7f8a9b0c1d' },
+  { ts: '2026-05-29T18:11:52.402Z', event: 'CONTINUED', account: '11098', jobId: 'baf33e43-0523-4582-b982-5f0092d166be', quoteId: '2581435374745793', traceId: '33a41014-889b-4f1d-a0ba-47694e3c33f9' },
+  { ts: '2026-05-29T18:24:58.360Z', event: 'CONTINUED', account: '11098', jobId: '49432d48-df45-467b-8dbc-32f6df3fe1f7', quoteId: '2581448256216001', traceId: '014519ef-6b4f-4e3e-9d2d-aba934460ddc' },
+  { ts: '2026-05-29T18:26:53.335Z', event: 'CONTINUED', account: '1449',  jobId: 'dc515bb2-bd28-4ffe-bde7-7a03f2051606', quoteId: '2581450136868737', traceId: '59297c6c-bae8-4eef-8760-3268ed60a7e1' },
+  { ts: '2026-05-29T18:34:51.264Z', event: 'CONTINUED', account: '96',    jobId: '513272b8-c719-4db3-94d7-8d5110dffc88', quoteId: '2581457962431041', traceId: '28696c24-b7be-4148-8785-b45a18cd361c' },
+  { ts: '2026-05-29T21:10:27.359Z', event: 'CONTINUED', account: '96',    jobId: 'ca69f1e5-ea31-40dc-9190-1d5344794162', quoteId: '2581610913985729', traceId: '181e1807-4fdf-41d5-8745-ff37c8992b5a' },
+  { ts: '2026-05-30T19:15:06.046Z', event: 'ABANDONED', account: '580',   jobId: 'a97b24b1-00ec-41a1-9f44-a75fb0f5ee18', quoteId: null,               traceId: 'daed2a9d-fc7e-42ef-8e1c-9c767c9d0830' },
+  { ts: '2026-06-01T13:19:06.976Z', event: 'CONTINUED', account: '10803', jobId: '828a0072-42be-496c-8a89-b18b5b3f3833', quoteId: '2585394316744257', traceId: '59d248e0-f166-4162-b885-3ff0852a5150' },
+  { ts: '2026-06-01T13:53:57.927Z', event: 'ABANDONED', account: '11150', jobId: '440bb0eb-bc7d-409e-af17-20ef57e44f31', quoteId: null,               traceId: '46991949-ab24-43af-960c-8e5919bca38b' },
+  { ts: '2026-06-01T18:18:23.920Z', event: 'CONTINUED', account: '10953', jobId: '0a91eda0-8a84-48ca-965a-ead5ce4a5e07', quoteId: '2585688529587649', traceId: '7c92886a-4a7c-440a-98d5-71be9400e88f' },
+  { ts: '2026-06-01T18:25:35.732Z', event: 'CONTINUED', account: '9797',  jobId: '869c2514-c47d-4794-b71a-1dfed420074c', quoteId: '2585695587890753', traceId: 'ffc599ce-776e-4f46-8fe2-79044163d22b' },
+  { ts: '2026-06-01T18:46:23.700Z', event: 'CONTINUED', account: '9773',  jobId: 'bc72c8ed-532c-4b90-ba11-f839eaa8ded7', quoteId: '2585716044238017', traceId: 'dbda59c6-c0a1-42c9-8409-e7825db11d6c' },
+  { ts: '2026-06-01T23:36:26.402Z', event: 'CONTINUED', account: '9797',  jobId: 'b802afe6-8cb3-4fc6-b9a7-4b67e9aa65cc', quoteId: '2586001163076801', traceId: 'b75d794c-5867-45ec-83db-195dab20118c' },
+];
+
+const DATES = ['2026-05-26','2026-05-27','2026-05-28','2026-05-29','2026-05-30','2026-06-01'];
+const DATE_LABELS = ['May 26','May 27','May 28','May 29','May 30','Jun 1'];
+
+const byDate = {};
+DATES.forEach(d => { byDate[d] = { cont: 0, aband: 0 }; });
+EVENTS.forEach(e => {
+  const d = e.ts.slice(0,10);
+  if (byDate[d]) {
+    if (e.event === 'CONTINUED') byDate[d].cont++;
+    else byDate[d].aband++;
+  }
+});
+
+const accountData = {};
+EVENTS.forEach(e => {
+  if (!accountData[e.account]) accountData[e.account] = { cont: 0, aband: 0 };
+  if (e.event === 'CONTINUED') accountData[e.account].cont++;
+  else accountData[e.account].aband++;
+});
+
+const hourData = {};
+for (let h = 0; h < 24; h++) hourData[h] = { cont: 0, aband: 0 };
+EVENTS.forEach(e => {
+  const h = parseInt(e.ts.slice(11,13));
+  if (e.event === 'CONTINUED') hourData[h].cont++;
+  else hourData[h].aband++;
+});
+
+// ─── Donut Chart ─────────────────────────────────────────────────────────────
+new Chart(document.getElementById('donutChart'), {
+  type: 'doughnut',
+  data: {
+    labels: ['Continued', 'Abandoned'],
+    datasets: [{
+      data: [42, 11],
+      backgroundColor: ['#22c55e', '#ef4444'],
+      borderWidth: 0,
+      hoverOffset: 6,
+    }]
+  },
+  options: {
+    cutout: '72%',
+    plugins: { legend: { display: false }, tooltip: {
+      callbacks: {
+        label: ctx => ` ${ctx.label}: ${ctx.raw} (${(ctx.raw/53*100).toFixed(1)}%)`
+      }
+    }},
+    animation: { animateRotate: true, duration: 900 }
+  }
+});
+
+// ─── Daily Stacked Bar ────────────────────────────────────────────────────────
+new Chart(document.getElementById('dailyChart'), {
+  type: 'bar',
+  data: {
+    labels: DATE_LABELS,
+    datasets: [
+      {
+        label: 'Continued',
+        data: DATES.map(d => byDate[d].cont),
+        backgroundColor: '#22c55e',
+        borderRadius: 4,
+        stack: 'stack',
+      },
+      {
+        label: 'Abandoned',
+        data: DATES.map(d => byDate[d].aband),
+        backgroundColor: '#ef4444',
+        borderRadius: 4,
+        stack: 'stack',
+      }
+    ]
+  },
+  options: {
+    responsive: true, maintainAspectRatio: false,
+    scales: {
+      x: { grid: { display: false }, stacked: true },
+      y: { stacked: true, ticks: { stepSize: 2 }, grid: { color: '#f3f4f6' }, beginAtZero: true }
+    },
+    plugins: { legend: { position: 'top' } }
+  }
+});
+
+// ─── Continued Line Chart ─────────────────────────────────────────────────────
+new Chart(document.getElementById('contLineChart'), {
+  type: 'line',
+  data: {
+    labels: DATE_LABELS,
+    datasets: [
+      {
+        label: 'Continued',
+        data: DATES.map(d => byDate[d].cont),
+        borderColor: '#22c55e',
+        backgroundColor: 'rgba(34,197,94,0.12)',
+        tension: 0.35,
+        fill: true,
+        pointRadius: 5,
+        pointBackgroundColor: '#22c55e',
+      },
+      {
+        label: 'Abandoned',
+        data: DATES.map(d => byDate[d].aband),
+        borderColor: '#ef4444',
+        backgroundColor: 'rgba(239,68,68,0.08)',
+        tension: 0.35,
+        fill: true,
+        pointRadius: 5,
+        pointBackgroundColor: '#ef4444',
+      }
+    ]
+  },
+  options: {
+    responsive: true, maintainAspectRatio: false,
+    scales: {
+      y: { beginAtZero: true, grid: { color: '#f3f4f6' } },
+      x: { grid: { display: false } }
+    },
+    plugins: { legend: { position: 'top' } }
+  }
+});
+
+// ─── Hourly Bar ───────────────────────────────────────────────────────────────
+const activeHours = [12,13,14,15,16,17,18,19,20,21,23];
+new Chart(document.getElementById('hourlyChart'), {
+  type: 'bar',
+  data: {
+    labels: activeHours.map(h => `${h}:00`),
+    datasets: [
+      {
+        label: 'Continued',
+        data: activeHours.map(h => hourData[h].cont),
+        backgroundColor: '#22c55e',
+        borderRadius: 3,
+        stack: 'h',
+      },
+      {
+        label: 'Abandoned',
+        data: activeHours.map(h => hourData[h].aband),
+        backgroundColor: '#ef4444',
+        borderRadius: 3,
+        stack: 'h',
+      }
+    ]
+  },
+  options: {
+    responsive: true, maintainAspectRatio: false,
+    scales: {
+      x: { grid: { display: false }, stacked: true, ticks: { font: { size: 10 } } },
+      y: { stacked: true, beginAtZero: true, grid: { color: '#f3f4f6' }, ticks: { stepSize: 2 } }
+    },
+    plugins: { legend: { display: false } }
+  }
+});
+
+// ─── Account Table ────────────────────────────────────────────────────────────
+const accountRows = Object.entries(accountData)
+  .map(([id, d]) => ({ id, ...d, total: d.cont + d.aband, rate: d.cont / (d.cont + d.aband) }))
+  .sort((a, b) => b.total - a.total);
+
+const tbody = document.getElementById('accountTableBody');
+accountRows.forEach(row => {
+  const pct = (row.rate * 100).toFixed(0);
+  let statusBadge;
+  if (row.aband === 0)          statusBadge = `<span class="badge badge-green">All Continued</span>`;
+  else if (row.cont === 0)      statusBadge = `<span class="badge badge-red">All Abandoned</span>`;
+  else if (row.rate >= 0.7)     statusBadge = `<span class="badge badge-green">Mostly Continued</span>`;
+  else                          statusBadge = `<span class="badge badge-orange">Mixed</span>`;
+
+  tbody.innerHTML += `
+    <tr>
+      <td><code>${row.id}</code></td>
+      <td><strong>${row.total}</strong></td>
+      <td style="color:var(--green); font-weight:600">${row.cont}</td>
+      <td style="color:var(--red); font-weight:600">${row.aband}</td>
+      <td><strong>${pct}%</strong></td>
+      <td>
+        <div class="bar-cell">
+          <div class="mini-bar">
+            <div class="mini-bar-inner" style="width:${pct}%; background:var(--green)"></div>
+          </div>
+        </div>
+      </td>
+      <td>${statusBadge}</td>
+    </tr>`;
+});
+
+// ─── Daily Table ──────────────────────────────────────────────────────────────
+const dtbody = document.getElementById('dailyTableBody');
+DATES.forEach((d, i) => {
+  const row = byDate[d];
+  const total = row.cont + row.aband;
+  const rate = total > 0 ? (row.cont / total * 100).toFixed(1) : '—';
+  const rateNum = total > 0 ? row.cont / total : null;
+  const color = rateNum === null ? '' : rateNum === 1 ? 'color:var(--green); font-weight:700' : rateNum >= 0.7 ? 'color:var(--gray-700)' : 'color:var(--red)';
+  dtbody.innerHTML += `
+    <tr>
+      <td><strong>${DATE_LABELS[i]}</strong> <span style="color:var(--gray-400); font-size:0.78rem">${d}</span></td>
+      <td>${total}</td>
+      <td style="color:var(--green); font-weight:600">${row.cont}</td>
+      <td style="color:var(--red); font-weight:600">${row.aband}</td>
+      <td style="${color}">${rate}%</td>
+    </tr>`;
+});
+
+// ─── Event Log Table ──────────────────────────────────────────────────────────
+const elbody = document.getElementById('eventLogBody');
+EVENTS.forEach(e => {
+  const shortJob   = e.jobId   ? e.jobId.slice(0,8)+'…'   : '—';
+  const shortTrace = e.traceId ? e.traceId.slice(0,8)+'…' : '—';
+  const isContin = e.event === 'CONTINUED';
+  elbody.innerHTML += `
+    <tr>
+      <td>${e.ts.replace('T',' ').replace('Z','')}</td>
+      <td><span class="${isContin ? 'event-type-cont' : 'event-type-aband'}">${e.event}</span></td>
+      <td>${e.account}</td>
+      <td title="${e.jobId || ''}">${shortJob}</td>
+      <td>${e.quoteId || '—'}</td>
+      <td title="${e.traceId || ''}">${shortTrace}</td>
+    </tr>`;
+});
+</script>
+</body>
+</html>

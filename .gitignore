@@ -1,0 +1,8 @@
+.DS_Store
+*.pptx
+*.pdf
+# Raw source files with spaces in names (normalized copies are in data/)
+Conversion Rate_*.csv
+Idle Quotes_*.csv
+Quotes per User_*.csv
+Time to Quote_*.csv

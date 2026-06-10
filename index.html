@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Stella Quote Metrics — EA Program Dashboard</title>
+  <link rel="stylesheet" href="css/style.css" />
+  <!-- CDN: loaded before ES modules so Chart and Papa are globals -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
+</head>
+<body>
+
+<!-- ── Header ─────────────────────────────────────────────── -->
+<header id="header">
+  <div class="logo">ServiceTrade</div>
+  <div class="title-block">
+    <h1>Stella Quote Metrics</h1>
+    <div class="week-label" id="week-label">EA Program Dashboard</div>
+  </div>
+</header>
+
+<!-- ── Data Status Bar ────────────────────────────────────── -->
+<div id="data-status-bar">
+  <span class="status-source" id="status-source">Loading data…</span>
+  <button class="upload-btn" id="upload-toggle-btn">Upload Data</button>
+</div>
+
+<!-- ── Upload Indicator (shown when in-memory data) ──────── -->
+<div class="upload-indicator" id="upload-indicator" style="display:none">
+  Viewing uploaded data — changes not saved to repository.
+  <button class="clear-btn" id="clear-upload-btn">Clear &amp; Reload</button>
+</div>
+
+<!-- ── Warning Banner (missing columns) ──────────────────── -->
+<div id="warning-banner">
+  <strong>Data warning:</strong> <span id="warning-text"></span>
+</div>
+
+<!-- ── Upload Panel ───────────────────────────────────────── -->
+<div id="upload-panel">
+  <div class="drop-zone" id="drop-zone">
+    <p><strong>Drop CSV, HTML, or JSON files here</strong></p>
+    <p class="drop-hint">Supports: Conversion_Rate, Idle_Quotes, Quotes_per_User, Time_to_Quote, and CloudWatch exports</p>
+    <label>
+      Browse files
+      <input type="file" id="file-input" multiple accept=".csv,.html,.htm,.json" />
+    </label>
+  </div>
+</div>
+
+<!-- ── Empty State ────────────────────────────────────────── -->
+<div id="empty-state">
+  <h2>No Data Loaded</h2>
+  <p>Drop the weekly CSV exports into the <code>/data/</code> folder and refresh,<br>or click <strong>Upload Data</strong> above to load files directly in the browser.</p>
+  <p style="margin-top:12px; font-size:0.78rem; color:#9ca3af;">If running from the filesystem, open via <code>npx serve .</code> — direct file:// access blocks data loading.</p>
+</div>
+
+<!-- ── Dashboard Content ──────────────────────────────────── -->
+<div id="dashboard-content" style="display:none">
+
+  <!-- KPI Summary -->
+  <section id="kpi-section">
+    <div class="section-header" data-target="kpi-body">
+      <h2>KPI Summary <span id="partial-week-badge"></span></h2>
+      <span class="section-toggle">▼</span>
+    </div>
+    <div class="section-body" id="kpi-body">
+      <div id="kpi-grid"></div>
+    </div>
+  </section>
+
+  <!-- Trend Charts -->
+  <section id="trends-section">
+    <div class="section-header" data-target="trends-body">
+      <h2>Trends</h2>
+      <span class="section-toggle">▼</span>
+    </div>
+    <div class="section-body" id="trends-body">
+      <div class="controls-bar">
+        <label for="week-range-select">Show:</label>
+        <select id="week-range-select">
+          <option value="4">Last 4 weeks</option>
+          <option value="8" selected>Last 8 weeks</option>
+          <option value="12">Last 12 weeks</option>
+          <option value="all">All time</option>
+        </select>
+      </div>
+      <div id="trend-charts-grid">
+        <div class="chart-card">
+          <h3>Quote Conversion Rate</h3>
+          <div class="chart-wrap"><canvas id="chart-conversion"></canvas></div>
+        </div>
+        <div class="chart-card">
+          <h3>Stella Adoption Rate</h3>
+          <div class="chart-wrap"><canvas id="chart-adoption"></canvas></div>
+        </div>
+        <div class="chart-card">
+          <h3>Active Users</h3>
+          <div class="chart-wrap"><canvas id="chart-active-users"></canvas></div>
+        </div>
+        <div class="chart-card">
+          <h3>Idle Quotes</h3>
+          <div class="chart-wrap"><canvas id="chart-idle-quotes"></canvas></div>
+        </div>
+        <div class="chart-card">
+          <h3>Avg Time to Quote (days)</h3>
+          <div class="chart-wrap"><canvas id="chart-ttq"></canvas></div>
+        </div>
+        <div class="chart-card">
+          <h3>Deficiency Capture Rate</h3>
+          <div class="chart-wrap"><canvas id="chart-deficiency"></canvas></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Usage by Tenant -->
+  <section id="tenant-section">
+    <div class="section-header" data-target="tenant-body">
+      <h2>Usage by Tenant</h2>
+      <span class="section-toggle">▼</span>
+    </div>
+    <div class="section-body" id="tenant-body">
+      <div class="controls-bar">
+        <label for="tenant-filter">Filter:</label>
+        <input type="text" id="tenant-filter" placeholder="Search tenant…" style="width:200px" />
+      </div>
+      <div class="table-wrap">
+        <table id="tenant-table">
+          <thead>
+            <tr>
+              <th data-sort="company">Company <span class="sort-icon">↕</span></th>
+              <th data-sort="cohort">Cohort <span class="sort-icon">↕</span></th>
+              <th data-sort="status">Status <span class="sort-icon">↕</span></th>
+              <th data-sort="quotesSent" class="sort-desc">Quotes Sent <span class="sort-icon">↓</span></th>
+              <th data-sort="conversionRate">Conversion <span class="sort-icon">↕</span></th>
+              <th data-sort="stellaAdoption">Stella Adoption <span class="sort-icon">↕</span></th>
+              <th data-sort="idleQuotes">Idle Quotes <span class="sort-icon">↕</span></th>
+            </tr>
+          </thead>
+          <tbody id="tenant-table-body"></tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <!-- Cohort Activity -->
+  <section id="cohort-section">
+    <div class="section-header" data-target="cohort-body">
+      <h2>Cohort Activity</h2>
+      <span class="section-toggle">▼</span>
+    </div>
+    <div class="section-body" id="cohort-body">
+      <div id="cohort-grid"></div>
+    </div>
+  </section>
+
+  <!-- Breakdowns -->
+  <section id="breakdown-section">
+    <div class="section-header" data-target="breakdown-body">
+      <h2>Session Breakdown</h2>
+      <span class="section-toggle">▼</span>
+    </div>
+    <div class="section-body" id="breakdown-body">
+      <div id="breakdown-grid">
+        <!-- Donut: Continued vs Abandoned -->
+        <div class="chart-card">
+          <h3>Continued vs. Abandoned</h3>
+          <div id="donut-container">
+            <div class="chart-empty-state" id="donut-empty">
+              <span class="icon">📊</span>
+              <span>Requires CloudWatch export</span>
+              <span style="font-size:0.72rem">Upload a <code>StellaQuoteFeedback</code> JSON or HTML export to enable this chart</span>
+            </div>
+            <div class="donut-hero" id="donut-hero" style="display:none">
+              <div class="donut-wrap">
+                <canvas id="chart-donut"></canvas>
+                <div class="donut-center-label">
+                  <span class="big" id="donut-pct">—</span>
+                  <span class="tiny">continued</span>
+                </div>
+              </div>
+              <div class="donut-legend" id="donut-legend"></div>
+            </div>
+          </div>
+        </div>
+        <!-- Daily Activity -->
+        <div class="chart-card">
+          <h3>Daily Activity</h3>
+          <div id="daily-container">
+            <div class="chart-empty-state" id="daily-empty">
+              <span class="icon">📅</span>
+              <span>Requires CloudWatch export</span>
+              <span style="font-size:0.72rem">Upload a <code>StellaQuoteFeedback</code> JSON or HTML export to enable this chart</span>
+            </div>
+            <div class="chart-wrap" id="daily-chart-wrap" style="display:none">
+              <canvas id="chart-daily"></canvas>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+</div><!-- /dashboard-content -->
+
+<footer>
+  Stella Quote EA Program &nbsp;·&nbsp; ServiceTrade &nbsp;·&nbsp; <span id="footer-updated"></span>
+</footer>
+
+<script type="module" src="js/main.js"></script>
+</body>
+</html>
