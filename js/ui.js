@@ -22,7 +22,7 @@ export function renderKPICards(kpis) {
   const grid = document.getElementById('kpi-grid');
   if (!grid) return;
 
-  grid.innerHTML = CONFIG.KPIS.map(({ key, label, format }) => {
+  grid.innerHTML = CONFIG.KPIS.map(({ key, label, format, tooltip }) => {
     const kpi = kpis[key] || { value: null, delta: null, sentiment: 'neutral' };
     const valueStr = fmt(kpi.value, format);
     const deltaStr = fmtDelta(kpi.delta);
@@ -33,9 +33,15 @@ export function renderKPICards(kpis) {
     const deltaHTML = deltaStr
       ? `<span class="kpi-delta ${kpi.sentiment}">${arrow}${deltaStr} WoW</span>`
       : '';
+    const tooltipHTML = tooltip
+      ? `<span class="kpi-tooltip-wrap">
+           <i class="kpi-tooltip-icon">i</i>
+           <span class="kpi-tooltip-text">${escHtml(tooltip)}</span>
+         </span>`
+      : '';
     return `
       <div class="kpi-card">
-        <span class="kpi-label">${label}</span>
+        <span class="kpi-label">${label}${tooltipHTML}</span>
         <span class="kpi-value">${valueStr}</span>
         ${deltaHTML}
       </div>`;
