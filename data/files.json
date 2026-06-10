@@ -1,6 +1,15 @@
 [
   { "name": "Conversion_Rate_2026-06-08.csv" },
-  { "name": "Idle_Quotes_2026-06-08.csv" },
   { "name": "Quotes_per_User_2026-06-08.csv" },
-  { "name": "Time_to_Quote_2026-06-08.csv" }
+  { "name": "Time_to_Quote_2026-06-08.csv" },
+  { "name": "Idle_Quotes_2026-04-08-1124.csv" },
+  { "name": "Idle_Quotes_2026-04-14-0822.csv" },
+  { "name": "Idle_Quotes_2026-04-20-1051.csv" },
+  { "name": "Idle_Quotes_2026-04-27-1547.csv" },
+  { "name": "Idle_Quotes_2026-05-04.csv" },
+  { "name": "Idle_Quotes_2026-05-07.csv" },
+  { "name": "Idle_Quotes_2026-05-11.csv" },
+  { "name": "Idle_Quotes_2026-05-18.csv" },
+  { "name": "Idle_Quotes_2026-06-01.csv" },
+  { "name": "Idle_Quotes_2026-06-08.csv" }
 ]

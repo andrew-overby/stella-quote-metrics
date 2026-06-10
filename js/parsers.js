@@ -60,7 +60,8 @@ export function parseConversionRate(text) {
 
 // ── Idle Quotes ──────────────────────────────────────────────────────────────
 // Columns: ACCOUNT_ID, USER_NAME, IDLE_QUOTES, AVG_IDLE_AGE_DAYS, MAX_IDLE_AGE_DAYS
-export function parseIdleQuotes(text) {
+// snapshotWeek is extracted from the filename (e.g. Idle_Quotes_2026-06-08.csv → "2026-06-08")
+export function parseIdleQuotes(text, snapshotWeek) {
   const { data } = parseCSV(text);
   const missingFields = [];
   const required = ['ACCOUNT_ID', 'USER_NAME', 'IDLE_QUOTES', 'AVG_IDLE_AGE_DAYS'];
@@ -74,9 +75,10 @@ export function parseIdleQuotes(text) {
   const rows = data
     .filter(r => !isExcluded(r))
     .map(r => ({
-      accountId:     String(r.ACCOUNT_ID || '').trim(),
-      userName:      (r.USER_NAME || '').trim(),
-      idleQuotes:    parseFloat(r.IDLE_QUOTES) || 0,
+      accountId:      String(r.ACCOUNT_ID || '').trim(),
+      userName:       (r.USER_NAME || '').trim(),
+      snapshotWeek:   snapshotWeek || null,
+      idleQuotes:     parseFloat(r.IDLE_QUOTES) || 0,
       avgIdleAgeDays: parseFloat(r.AVG_IDLE_AGE_DAYS) || 0,
       maxIdleAgeDays: parseFloat(r.MAX_IDLE_AGE_DAYS) || 0,
     }));
@@ -192,7 +194,10 @@ export function parseByFilename(filename, text) {
     return { type: 'conversionRate', ...parseConversionRate(text) };
   }
   if (lower.startsWith('idle_quotes') || lower.startsWith('idle quotes')) {
-    return { type: 'idleQuotes', ...parseIdleQuotes(text) };
+    // Extract the YYYY-MM-DD date from the filename for snapshot tagging
+    const dateMatch = base.match(/(\d{4}-\d{2}-\d{2})/);
+    const snapshotWeek = dateMatch ? dateMatch[1] : null;
+    return { type: 'idleQuotes', ...parseIdleQuotes(text, snapshotWeek) };
   }
   if (lower.startsWith('quotes_per_user') || lower.startsWith('quotes per user')) {
     return { type: 'quotesPerUser', ...parseQuotesPerUser(text) };

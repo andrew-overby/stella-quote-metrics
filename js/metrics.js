@@ -118,14 +118,27 @@ export function computeMetrics(appData) {
     return total === 0 ? null : (stella / total) * 100;
   }
 
-  // ── KPI: Total Idle Quotes (snapshot) ───────────────────
-  const totalIdleQuotesCurrent = idleQuotes
-    ? idleQuotes.reduce((s, r) => s + r.idleQuotes, 0)
+  // ── KPI: Total Idle Quotes (latest snapshot) ────────────
+  // idleQuotes rows may come from multiple dated snapshots; use only the latest.
+  const latestIdleWeek = idleQuotes
+    ? idleQuotes.reduce((best, r) => {
+        const w = r.snapshotWeek || '';
+        return w > best ? w : best;
+      }, '')
+    : '';
+  const latestIdleRows = idleQuotes
+    ? (latestIdleWeek
+        ? idleQuotes.filter(r => r.snapshotWeek === latestIdleWeek)
+        : idleQuotes)
+    : [];
+
+  const totalIdleQuotesCurrent = latestIdleRows.length > 0
+    ? latestIdleRows.reduce((s, r) => s + r.idleQuotes, 0)
     : null;
 
   // ── KPI: Avg Idle Age ────────────────────────────────────
-  const avgIdleAgeCurrent = idleQuotes
-    ? weightedAvg(idleQuotes, 'avgIdleAgeDays', 'idleQuotes')
+  const avgIdleAgeCurrent = latestIdleRows.length > 0
+    ? weightedAvg(latestIdleRows, 'avgIdleAgeDays', 'idleQuotes')
     : null;
 
   // ── KPI: Avg Time to Quote ───────────────────────────────
@@ -174,12 +187,22 @@ export function computeMetrics(appData) {
     return total === 0 ? null : (quoted / total) * 100;
   }
 
-  // Idle quotes time series: uses all weekly data, falling back to snapshot per-week if needed
+  // Idle quotes time series: one data point per snapshot week
   function buildIdleSeries(cr, qpu, ttq, idle) {
-    // We only have a snapshot for idle — return it as a single point tagged to latestWeek
-    if (!idle || !latestWeek) return [];
-    const total = idle.reduce((s, r) => s + r.idleQuotes, 0);
-    return [{ week: latestWeek, label: weekLabel(latestWeek), value: total }];
+    if (!idle) return [];
+    // Group by snapshotWeek; rows without a snapshot week fall back to latestWeek
+    const byWeek = {};
+    idle.forEach(r => {
+      const wk = r.snapshotWeek || latestWeek;
+      if (!wk) return;
+      if (!byWeek[wk]) byWeek[wk] = [];
+      byWeek[wk].push(r);
+    });
+    return Object.keys(byWeek).sort().map(wk => ({
+      week:  wk,
+      label: weekLabel(wk),
+      value: byWeek[wk].reduce((s, r) => s + r.idleQuotes, 0),
+    }));
   }
 
   // ── Tenant Breakdown ─────────────────────────────────────
