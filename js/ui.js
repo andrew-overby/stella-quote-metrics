@@ -218,6 +218,54 @@ export function initCollapsibles() {
   });
 }
 
+// ── Global floating tooltip ──────────────────────────────────────────────────
+// Reads .kpi-tooltip-text content and positions a fixed-layer div so that
+// no overflow:hidden ancestor can ever clip it.
+export function initTooltips() {
+  const floater = document.getElementById('global-tooltip');
+  if (!floater) return;
+
+  document.addEventListener('mouseover', e => {
+    const wrap = e.target.closest('.kpi-tooltip-wrap');
+    if (!wrap) return;
+    const textEl = wrap.querySelector('.kpi-tooltip-text');
+    const icon   = wrap.querySelector('.kpi-tooltip-icon');
+    if (!textEl || !icon) return;
+
+    floater.textContent = textEl.textContent.trim();
+    floater.style.display = 'block';
+
+    const iconRect    = icon.getBoundingClientRect();
+    const tipW        = 220;
+    const tipH        = floater.offsetHeight;
+    const margin      = 8;
+    const viewW       = window.innerWidth;
+    const viewH       = window.innerHeight;
+
+    // Prefer below the icon; flip above if it would overflow the bottom
+    let top = iconRect.bottom + margin;
+    if (top + tipH > viewH - margin) top = iconRect.top - tipH - margin;
+
+    // Center on the icon; clamp to viewport edges
+    let left = iconRect.left + iconRect.width / 2 - tipW / 2;
+    left = Math.max(margin, Math.min(left, viewW - tipW - margin));
+
+    floater.style.top  = top + 'px';
+    floater.style.left = left + 'px';
+
+    // Position the arrow over the icon center
+    const arrowLeft = (iconRect.left + iconRect.width / 2) - left;
+    floater.style.setProperty('--arrow-left', arrowLeft + 'px');
+  });
+
+  document.addEventListener('mouseout', e => {
+    if (!e.target.closest('.kpi-tooltip-wrap')) return;
+    if (!e.relatedTarget || !e.relatedTarget.closest('.kpi-tooltip-wrap')) {
+      floater.style.display = 'none';
+    }
+  });
+}
+
 // ── Empty/content state ──────────────────────────────────────────────────────
 export function showDashboard(show) {
   const content = document.getElementById('dashboard-content');

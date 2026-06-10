@@ -4,7 +4,7 @@ import { computeMetrics } from './metrics.js';
 import {
   renderKPICards, renderWeekLabel, renderStatusBar, renderWarnings,
   renderTenantTable, renderCohortGrid, renderDonutPanel, showDailyChartWrap,
-  initCollapsibles, showDashboard, showUploadIndicator, renderFooter,
+  initCollapsibles, initTooltips, showDashboard, showUploadIndicator, renderFooter,
 } from './ui.js';
 import {
   buildConversionChart, buildAdoptionChart, buildActiveUsersChart,
@@ -20,6 +20,7 @@ let currentTimeSeries = null;
 // ── Entry point ──────────────────────────────────────────────────────────────
 document.addEventListener('DOMContentLoaded', async () => {
   initCollapsibles();
+  initTooltips();
   initUploadPanel();
   renderFooter();
 
