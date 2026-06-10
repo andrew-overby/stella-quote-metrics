@@ -26,8 +26,12 @@ export function renderKPICards(kpis) {
     const kpi = kpis[key] || { value: null, delta: null, sentiment: 'neutral' };
     const valueStr = fmt(kpi.value, format);
     const deltaStr = fmtDelta(kpi.delta);
+    // Arrow shows actual direction of change; color shows if that's good or bad
+    const arrow = (kpi.delta !== null && kpi.delta !== 0)
+      ? (kpi.delta > 0 ? '↑' : '↓')
+      : '';
     const deltaHTML = deltaStr
-      ? `<span class="kpi-delta ${kpi.sentiment}">${kpi.sentiment === 'up' ? '↑' : kpi.sentiment === 'down' ? '↓' : ''}${deltaStr} WoW</span>`
+      ? `<span class="kpi-delta ${kpi.sentiment}">${arrow}${deltaStr} WoW</span>`
       : '';
     return `
       <div class="kpi-card">
