@@ -425,16 +425,18 @@ section { margin-bottom: 48px; }
 .chart-empty-state .icon { font-size: 1.6rem; }
 
 /* ── Tenant Table ────────────────────────────────────────── */
-.table-wrap { overflow-x: auto; }
+.table-wrap {
+  overflow-x: auto;
+  border-radius: var(--radius);
+  overflow: hidden;
+  box-shadow: var(--shadow);
+}
 
 table {
   width: 100%;
   border-collapse: collapse;
   font-size: 0.875rem;
   background: var(--white);
-  border-radius: var(--radius);
-  overflow: hidden;
-  box-shadow: var(--shadow);
 }
 
 th {
