@@ -347,7 +347,7 @@ section { margin-bottom: 48px; }
   visibility: hidden;
   opacity: 0;
   position: absolute;
-  bottom: calc(100% + 8px);
+  top: calc(100% + 8px);
   left: 50%;
   transform: translateX(-50%);
   width: 220px;
@@ -366,15 +366,15 @@ section { margin-bottom: 48px; }
   text-align: left;
 }
 
-/* Arrow pointing down */
+/* Arrow pointing up */
 .kpi-tooltip-text::after {
   content: '';
   position: absolute;
-  top: 100%;
+  bottom: 100%;
   left: 50%;
   transform: translateX(-50%);
   border: 5px solid transparent;
-  border-top-color: var(--st-dark-blue);
+  border-bottom-color: var(--st-dark-blue);
 }
 
 .kpi-tooltip-wrap:hover .kpi-tooltip-text {
